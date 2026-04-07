@@ -30,6 +30,7 @@ import os
 import json
 import asyncio
 import uvicorn
+from dotenv import load_dotenv
 
 # Import our new modules
 from auth_manager import get_auth_manager, AuthenticationError
@@ -613,6 +614,28 @@ except Exception as e:
 # ============================================================================
 # Entry Point
 # ============================================================================
+
+# Auto-initialize from environment variables when available.
+load_dotenv()
+
+_dev_token = os.environ.get("GOOGLE_ADS_DEVELOPER_TOKEN")
+_client_id = os.environ.get("GOOGLE_ADS_CLIENT_ID")
+_client_secret = os.environ.get("GOOGLE_ADS_CLIENT_SECRET")
+_refresh_token = os.environ.get("GOOGLE_ADS_REFRESH_TOKEN")
+_login_customer_id = os.environ.get("GOOGLE_ADS_LOGIN_CUSTOMER_ID")
+
+if all([_dev_token, _client_id, _client_secret, _refresh_token]):
+    try:
+        result = google_ads_initialize(
+            developer_token=_dev_token,
+            client_id=_client_id,
+            client_secret=_client_secret,
+            refresh_token=_refresh_token,
+            login_customer_id=_login_customer_id,
+        )
+        logger.info(f"Auto-initialized from env vars: {result}")
+    except Exception as e:
+        logger.warning(f"Auto-init failed: {e}")
 
 if __name__ == "__main__":
     logger.info("Starting Google Ads MCP Server v2.0")
