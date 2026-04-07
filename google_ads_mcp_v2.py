@@ -22,6 +22,7 @@ Requirements:
 """
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any, Literal
 from enum import Enum
@@ -42,8 +43,26 @@ from response_handler import ResponseFormatter, stream_large_query, paginate_res
 # Initialize logger for this module
 logger = get_logger(__name__)
 
+# Configure transport security for local development and Railway.
+public_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "google-ads-mcp-production-6e95.up.railway.app")
+public_origins = [f"https://{public_domain}"] if public_domain else []
+allowed_hosts = ["127.0.0.1:*", "localhost:*"]
+allowed_origins = ["http://127.0.0.1:*", "http://localhost:*", *public_origins]
+
+if public_domain:
+    allowed_hosts.extend([public_domain, f"{public_domain}:*"])
+
 # Initialize MCP server
-mcp = FastMCP("google_ads_mcp_v2")
+mcp = FastMCP(
+    "google_ads_mcp_v2",
+    host="0.0.0.0",
+    port=int(os.environ.get("PORT", 8080)),
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    ),
+)
 
 # Initialize configuration (loads from config.yaml or environment variables)
 try:
