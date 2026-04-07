@@ -25,6 +25,7 @@ from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any, Literal
 from enum import Enum
+import os
 import json
 import asyncio
 
@@ -598,5 +599,6 @@ if __name__ == "__main__":
     logger.info(f"Cache backend: {cache_backend.value}")
     logger.info(f"Features enabled: {config.config.features.model_dump()}")
 
-    # Run the MCP server
-    mcp.run()
+    # Use SSE transport for remote deployments such as Railway.
+    port = int(os.environ.get("PORT", 8080))
+    mcp.run(transport="sse", host="0.0.0.0", port=port)
