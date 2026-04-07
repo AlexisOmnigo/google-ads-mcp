@@ -28,6 +28,7 @@ from enum import Enum
 import os
 import json
 import asyncio
+import uvicorn
 
 # Import our new modules
 from auth_manager import get_auth_manager, AuthenticationError
@@ -599,6 +600,8 @@ if __name__ == "__main__":
     logger.info(f"Cache backend: {cache_backend.value}")
     logger.info(f"Features enabled: {config.config.features.model_dump()}")
 
-    # Use SSE transport for remote deployments such as Railway.
     port = int(os.environ.get("PORT", 8080))
-    mcp.run(transport="sse", host="0.0.0.0", port=port)
+
+    # Build the SSE ASGI app explicitly so Railway can bind to its assigned port.
+    app = mcp.sse_app()
+    uvicorn.run(app, host="0.0.0.0", port=port)
