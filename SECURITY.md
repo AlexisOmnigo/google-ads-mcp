@@ -57,7 +57,7 @@ Please include the following information in your report:
 ## Environment
 - Python: 3.10
 - OS: Windows 11
-- Google Ads API: v17
+- Google Ads API: latest supported by the installed client library
 ```
 
 ### Response Timeline

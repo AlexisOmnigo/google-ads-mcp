@@ -728,7 +728,7 @@ def register_conversion_tools(mcp):
 
                 client.copy_from(
                     conversion_action_operation.update_mask,
-                    client.get_type("FieldMask", version="v17")(paths=field_paths)
+                    client.get_type("FieldMask")(paths=field_paths)
                 )
 
                 conversion_action_service.mutate_conversion_actions(

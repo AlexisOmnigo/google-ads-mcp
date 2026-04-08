@@ -215,7 +215,7 @@ class BiddingStrategyManager:
         # Set field mask
         self.client.copy_from(
             bidding_strategy_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=field_mask_paths)
+            self.client.get_type("FieldMask")(paths=field_mask_paths)
         )
 
         response = bidding_strategy_service.mutate_bidding_strategies(
@@ -257,7 +257,7 @@ class BiddingStrategyManager:
 
         self.client.copy_from(
             campaign_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=["bidding_strategy"])
+            self.client.get_type("FieldMask")(paths=["bidding_strategy"])
         )
 
         response = campaign_service.mutate_campaigns(
@@ -367,7 +367,7 @@ class BiddingStrategyManager:
 
             self.client.copy_from(
                 operation.update_mask,
-                self.client.get_type("FieldMask", version="v17")(paths=["bid_modifier"])
+                self.client.get_type("FieldMask")(paths=["bid_modifier"])
             )
 
             operations.append(operation)
@@ -414,7 +414,7 @@ class BiddingStrategyManager:
 
             self.client.copy_from(
                 operation.update_mask,
-                self.client.get_type("FieldMask", version="v17")(paths=["bid_modifier"])
+                self.client.get_type("FieldMask")(paths=["bid_modifier"])
             )
 
             operations.append(operation)

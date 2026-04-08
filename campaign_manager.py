@@ -305,7 +305,7 @@ class CampaignManager:
         # Set field mask
         self.client.copy_from(
             campaign_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=field_mask)
+            self.client.get_type("FieldMask")(paths=field_mask)
         )
 
         # Update campaign
@@ -392,7 +392,7 @@ class CampaignManager:
         # Set field mask
         self.client.copy_from(
             budget_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=["amount_micros"])
+            self.client.get_type("FieldMask")(paths=["amount_micros"])
         )
 
         # Update budget
@@ -907,7 +907,7 @@ class CampaignManager:
         # Set field mask
         self.client.copy_from(
             campaign_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=["campaign_budget"])
+            self.client.get_type("FieldMask")(paths=["campaign_budget"])
         )
 
         # Update campaign

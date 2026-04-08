@@ -197,7 +197,7 @@ class AdGroupManager:
         # Set field mask
         self.client.copy_from(
             ad_group_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=update_mask_paths)
+            self.client.get_type("FieldMask")(paths=update_mask_paths)
         )
 
         # Update ad group
@@ -538,7 +538,7 @@ class AdGroupManager:
 
             self.client.copy_from(
                 ad_group_operation.update_mask,
-                self.client.get_type("FieldMask", version="v17")(paths=["status"])
+                self.client.get_type("FieldMask")(paths=["status"])
             )
 
             operations.append(ad_group_operation)

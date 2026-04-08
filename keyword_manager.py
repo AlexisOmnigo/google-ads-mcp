@@ -230,7 +230,7 @@ class KeywordManager:
         # Set field mask
         self.client.copy_from(
             operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=["cpc_bid_micros"])
+            self.client.get_type("FieldMask")(paths=["cpc_bid_micros"])
         )
 
         # Update keyword
@@ -279,7 +279,7 @@ class KeywordManager:
         # Set field mask
         self.client.copy_from(
             operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(paths=["status"])
+            self.client.get_type("FieldMask")(paths=["status"])
         )
 
         # Update keyword
@@ -576,7 +576,7 @@ class KeywordManager:
 
             self.client.copy_from(
                 operation.update_mask,
-                self.client.get_type("FieldMask", version="v17")(paths=["cpc_bid_micros"])
+                self.client.get_type("FieldMask")(paths=["cpc_bid_micros"])
             )
 
             operations.append(operation)

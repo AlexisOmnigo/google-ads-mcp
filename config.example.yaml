@@ -64,7 +64,7 @@ features:
   audience_management: true
 
 # API settings
-api_version: v22
+api_version: null  # Optional override, or leave null to use the client library's latest supported version
 use_proto_plus: true
 
 # Response settings

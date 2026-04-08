@@ -3,7 +3,7 @@
 ![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![MCP SDK](https://img.shields.io/badge/MCP-1.1.0%2B-purple)
-![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-v17%2B-red)
+![Google Ads API](https://img.shields.io/badge/Google%20Ads%20API-latest_supported-red)
 ![Status](https://img.shields.io/badge/status-Active%20Development-orange)
 
 A comprehensive Model Context Protocol (MCP) server for Google Ads API integration, enabling AI assistants like Claude, ChatGPT, and Gemini to analyze, manage, and optimize Google Ads campaigns through natural language conversations.
@@ -262,7 +262,7 @@ pip install -r requirements.txt
 **Option 2: Manual installation**:
 
 ```bash
-pip install google-ads>=25.0.0 mcp>=1.1.0 httpx>=0.27.0 pydantic>=2.0.0 google-auth-oauthlib>=1.0.0
+pip install google-ads>=30.0.0 mcp>=1.1.0 httpx>=0.27.0 pydantic>=2.0.0 google-auth-oauthlib>=1.0.0
 ```
 
 **Optional dependencies** (for advanced features):
@@ -1089,7 +1089,7 @@ features:
   conversion_tracking: true
   audience_management: true
 
-api_version: v17  # Google Ads API version
+api_version: null  # Optional override, or leave null to use the client library's latest supported version
 default_page_size: 50
 character_limit: 25000  # MCP response size limit
 ```

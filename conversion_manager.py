@@ -398,7 +398,7 @@ class ConversionManager:
 
         self.client.copy_from(
             conversion_action_operation.update_mask,
-            self.client.get_type("FieldMask", version="v17")(
+            self.client.get_type("FieldMask")(
                 paths=["attribution_model_settings.attribution_model"]
             )
         )

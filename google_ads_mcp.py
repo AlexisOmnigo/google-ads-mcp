@@ -5,7 +5,7 @@ A comprehensive Model Context Protocol server for Google Ads API integration.
 Provides tools for account analysis, campaign management, and optimization.
 
 Requirements:
-- google-ads>=25.0.0
+- google-ads>=30.0.0
 - mcp>=1.1.0
 - httpx
 - pydantic>=2.0.0
@@ -19,6 +19,7 @@ from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
 import json
 import asyncio
+import os
 from datetime import datetime, timedelta
 
 # Constants
@@ -42,7 +43,8 @@ def initialize_client(
     client_id: str,
     client_secret: str,
     refresh_token: str,
-    login_customer_id: Optional[str] = None
+    login_customer_id: Optional[str] = None,
+    api_version: Optional[str] = None,
 ) -> None:
     """
     Initialize the Google Ads API client with OAuth credentials.
@@ -53,6 +55,7 @@ def initialize_client(
         client_secret: OAuth2 client secret
         refresh_token: OAuth2 refresh token
         login_customer_id: Optional MCC account ID (without hyphens)
+        api_version: Optional Google Ads API version override
     """
     global _google_ads_client
     
@@ -66,6 +69,10 @@ def initialize_client(
     
     if login_customer_id:
         credentials["login_customer_id"] = login_customer_id
+
+    effective_api_version = api_version or os.getenv("GOOGLE_ADS_API_VERSION")
+    if effective_api_version:
+        credentials["api_version"] = effective_api_version
     
     _google_ads_client = GoogleAdsClient.load_from_dict(credentials)
 
@@ -235,6 +242,10 @@ class InitializeInput(BaseModel):
     login_customer_id: Optional[str] = Field(
         default=None,
         description="MCC account ID (without hyphens) if accessing client accounts. Example: '1234567890'"
+    )
+    api_version: Optional[str] = Field(
+        default=None,
+        description="Optional Google Ads API version override. Leave empty to use the client library's latest supported version."
     )
 
 
@@ -426,12 +437,15 @@ async def google_ads_initialize(params: InitializeInput) -> str:
             client_id=params.client_id,
             client_secret=params.client_secret,
             refresh_token=params.refresh_token,
-            login_customer_id=params.login_customer_id
+            login_customer_id=params.login_customer_id,
+            api_version=params.api_version,
         )
         
         message = "✓ Google Ads API client initialized successfully."
         if params.login_customer_id:
             message += f"\n✓ Using MCC account: {params.login_customer_id}"
+        if params.api_version:
+            message += f"\n✓ Using API version override: {params.api_version}"
         message += "\n\nYou can now use other Google Ads tools to access your account data."
         
         return message

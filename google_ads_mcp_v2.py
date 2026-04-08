@@ -11,7 +11,7 @@ Enhanced MCP server with:
 - Response streaming
 
 Requirements:
-- google-ads>=25.0.0
+- google-ads>=30.0.0
 - mcp>=1.1.0
 - httpx>=0.27.0
 - pydantic>=2.0.0
@@ -226,7 +226,8 @@ def google_ads_initialize(
             client_secret=client_secret,
             refresh_token=refresh_token,
             login_customer_id=login_customer_id,
-            client_key=client_key
+            client_key=client_key,
+            api_version=config.config.api_version,
         )
 
         # Validate credentials
@@ -279,7 +280,8 @@ def google_ads_service_account_init(
             developer_token=developer_token,
             json_key_file_path=json_key_file_path,
             login_customer_id=login_customer_id,
-            client_key=client_key
+            client_key=client_key,
+            api_version=config.config.api_version,
         )
 
         logger.info(f"Service account initialized: {client_key}")

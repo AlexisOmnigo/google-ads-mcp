@@ -140,7 +140,10 @@ class GoogleAdsMCPConfig(BaseModel):
     features: FeaturesConfig = Field(default_factory=FeaturesConfig)
 
     # API settings
-    api_version: str = Field(default="v22", description="Google Ads API version")
+    api_version: Optional[str] = Field(
+        default=None,
+        description="Optional Google Ads API version override. Defaults to the client library's latest supported version."
+    )
     use_proto_plus: bool = Field(default=True, description="Use proto-plus for API responses")
 
     # Response settings
@@ -232,6 +235,9 @@ class ConfigManager:
         if os.getenv("GOOGLE_ADS_SERVICE_ACCOUNT_KEY_FILE"):
             config["authentication"]["service_account_key_file"] = os.getenv("GOOGLE_ADS_SERVICE_ACCOUNT_KEY_FILE")
             config["authentication"]["method"] = "service_account"
+
+        if os.getenv("GOOGLE_ADS_API_VERSION"):
+            config["api_version"] = os.getenv("GOOGLE_ADS_API_VERSION")
 
         # Logging settings
         if os.getenv("LOG_LEVEL"):

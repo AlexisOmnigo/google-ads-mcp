@@ -137,7 +137,8 @@ class GoogleAdsAuthManager:
         client_secret: str,
         refresh_token: str,
         login_customer_id: Optional[str] = None,
-        client_key: str = "default"
+        client_key: str = "default",
+        api_version: Optional[str] = None
     ) -> str:
         """
         Initialize Google Ads client with OAuth2.
@@ -149,6 +150,7 @@ class GoogleAdsAuthManager:
             refresh_token: OAuth2 refresh token
             login_customer_id: Optional MCC account ID
             client_key: Unique identifier for this client session
+            api_version: Optional Google Ads API version override
 
         Returns:
             Client key for this session
@@ -180,6 +182,9 @@ class GoogleAdsAuthManager:
             if login_customer_id:
                 credentials["login_customer_id"] = login_customer_id
 
+            if api_version:
+                credentials["api_version"] = api_version
+
             # Create client
             client = GoogleAdsClient.load_from_dict(credentials)
 
@@ -201,7 +206,8 @@ class GoogleAdsAuthManager:
         developer_token: str,
         json_key_file_path: str,
         login_customer_id: Optional[str] = None,
-        client_key: str = "service_account"
+        client_key: str = "service_account",
+        api_version: Optional[str] = None
     ) -> str:
         """
         Initialize Google Ads client with service account.
@@ -211,6 +217,7 @@ class GoogleAdsAuthManager:
             json_key_file_path: Path to service account JSON key file
             login_customer_id: Optional MCC account ID
             client_key: Unique identifier for this client session
+            api_version: Optional Google Ads API version override
 
         Returns:
             Client key for this session
@@ -233,6 +240,9 @@ class GoogleAdsAuthManager:
 
             if login_customer_id:
                 credentials["login_customer_id"] = login_customer_id
+
+            if api_version:
+                credentials["api_version"] = api_version
 
             # Create client
             client = GoogleAdsClient.load_from_dict(credentials)
