@@ -646,6 +646,6 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 8080))
 
-    # Build the SSE ASGI app explicitly so Railway can bind to its assigned port.
-    app = mcp.sse_app()
+    # Prefer streamable HTTP for hosted MCP deployments such as Railway.
+    app = mcp.streamable_http_app()
     uvicorn.run(app, host="0.0.0.0", port=port)
