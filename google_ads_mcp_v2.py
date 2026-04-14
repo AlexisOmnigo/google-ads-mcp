@@ -26,11 +26,15 @@ from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any, Literal
 from enum import Enum
+import hmac
 import os
 import json
 import asyncio
 import uvicorn
 from dotenv import load_dotenv
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 # Import our new modules
 from auth_manager import get_auth_manager, AuthenticationError
@@ -43,6 +47,28 @@ from response_handler import ResponseFormatter, stream_large_query, paginate_res
 
 # Initialize logger for this module
 logger = get_logger(__name__)
+
+
+class MCPBearerAuthMiddleware(BaseHTTPMiddleware):
+    """Require a shared bearer token for remote MCP HTTP access."""
+
+    def __init__(self, app, token: str, protected_prefixes: tuple[str, ...] = ("/mcp",)):
+        super().__init__(app)
+        self.token = token
+        self.protected_prefixes = protected_prefixes
+
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if any(path == prefix or path.startswith(f"{prefix}/") for prefix in self.protected_prefixes):
+            auth_header = request.headers.get("authorization", "")
+            if not auth_header.startswith("Bearer "):
+                return JSONResponse({"error": "Missing bearer token"}, status_code=401)
+
+            provided_token = auth_header[len("Bearer "):].strip()
+            if not hmac.compare_digest(provided_token, self.token):
+                return JSONResponse({"error": "Invalid bearer token"}, status_code=403)
+
+        return await call_next(request)
 
 # Configure transport security for local development and Railway.
 public_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "google-ads-mcp-production-6e95.up.railway.app")
@@ -645,7 +671,13 @@ if __name__ == "__main__":
     logger.info(f"Features enabled: {config.config.features.model_dump()}")
 
     port = int(os.environ.get("PORT", 8080))
+    auth_token = os.environ.get("MCP_AUTH_TOKEN")
+    if not auth_token:
+        raise RuntimeError(
+            "MCP_AUTH_TOKEN must be set before starting the remote MCP server."
+        )
 
     # Prefer streamable HTTP for hosted MCP deployments such as Railway.
     app = mcp.streamable_http_app()
+    app.add_middleware(MCPBearerAuthMiddleware, token=auth_token)
     uvicorn.run(app, host="0.0.0.0", port=port)
