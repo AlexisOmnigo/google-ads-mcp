@@ -432,92 +432,141 @@ async def google_ads_list_accounts(
     response_format: ResponseFormat = ResponseFormat.MARKDOWN
 ) -> str:
     """
-    List all accessible Google Ads accounts.
+    List all Google Ads accounts under the configured MCC (manager) account.
+
+    Runs a single GAQL query against `customer_client` from the MCC's
+    perspective, which returns the full hierarchy in one call and avoids
+    per-account lookups that fail for the MCC itself or deactivated children.
 
     Args:
         response_format: Output format (markdown or json)
 
     Returns:
-        List of accounts with details
+        List of accounts (managers and clients) with id, descriptive_name,
+        currency_code, time_zone, is_manager flag, status, level and
+        test_account fields.
     """
     with performance_logger.track_operation('list_accounts'):
         try:
-            client = auth_manager.get_client()
-            customer_service = client.get_service("CustomerService")
+            login_customer_id = os.environ.get("GOOGLE_ADS_LOGIN_CUSTOMER_ID")
+            if not login_customer_id or not login_customer_id.strip():
+                error_msg = (
+                    "GOOGLE_ADS_LOGIN_CUSTOMER_ID environment variable is not set. "
+                    "Set it to the MCC (manager) account ID (digits only, no hyphens) "
+                    "before listing accounts."
+                )
+                logger.error(error_msg)
+                return f"❌ Error listing accounts: {error_msg}"
 
-            # Get accessible customers
-            accessible_customers = customer_service.list_accessible_customers()
-            resource_names = accessible_customers.resource_names
+            mcc_id = login_customer_id.replace("-", "").strip()
 
-            accounts = []
+            query = """
+                SELECT
+                    customer_client.id,
+                    customer_client.descriptive_name,
+                    customer_client.currency_code,
+                    customer_client.time_zone,
+                    customer_client.manager,
+                    customer_client.status,
+                    customer_client.level,
+                    customer_client.test_account,
+                    customer_client.client_customer
+                FROM customer_client
+                WHERE customer_client.status = 'ENABLED'
+            """
 
-            for resource_name in resource_names:
-                customer_id = resource_name.split("/")[1]
+            results = await execute_query(mcc_id, query, use_cache=True)
 
-                # Get customer details
-                query = f"""
-                    SELECT
-                        customer.id,
-                        customer.descriptive_name,
-                        customer.currency_code,
-                        customer.time_zone,
-                        customer.manager,
-                        customer.status
-                    FROM customer
-                    WHERE customer.id = {customer_id}
-                """
+            accounts: List[Dict[str, Any]] = []
+            for row in results:
+                cc = row.customer_client
+                accounts.append({
+                    'id': str(cc.id),
+                    'descriptive_name': cc.descriptive_name or 'Unnamed Account',
+                    'currency_code': cc.currency_code,
+                    'time_zone': cc.time_zone,
+                    'is_manager': bool(cc.manager),
+                    'status': cc.status.name,
+                    'level': int(cc.level),
+                    'test_account': bool(cc.test_account),
+                })
 
-                results = await execute_query(customer_id, query, use_cache=True)
-
-                if results:
-                    row = results[0]
-                    accounts.append({
-                        'id': str(row.customer.id),
-                        'name': row.customer.descriptive_name or 'Unnamed Account',
-                        'currency_code': row.customer.currency_code,
-                        'time_zone': row.customer.time_zone,
-                        'manager': row.customer.manager,
-                        'status': row.customer.status.name
-                    })
-
-            # Audit log
-            audit_logger.log_api_call(
-                customer_id="all",
-                operation="list_accounts",
-                resource_type="customer",
-                action="read",
-                result="success",
-                details={'account_count': len(accounts)}
+            accounts.sort(
+                key=lambda a: (
+                    a['level'],
+                    not a['is_manager'],
+                    a['descriptive_name'].lower(),
+                )
             )
 
-            # Format response
+            manager_count = sum(1 for a in accounts if a['is_manager'])
+            client_count = len(accounts) - manager_count
+
+            audit_logger.log_api_call(
+                customer_id=mcc_id,
+                operation="list_accounts",
+                resource_type="customer_client",
+                action="read",
+                result="success",
+                details={
+                    'account_count': len(accounts),
+                    'manager_count': manager_count,
+                    'client_count': client_count,
+                },
+            )
+
             if response_format == ResponseFormat.JSON:
-                return json.dumps(accounts, indent=2)
-            else:
-                return format_account_list_markdown(accounts)
+                return json.dumps(
+                    {
+                        'mcc_id': mcc_id,
+                        'total_accounts': len(accounts),
+                        'manager_accounts': manager_count,
+                        'client_accounts': client_count,
+                        'accounts': accounts,
+                    },
+                    indent=2,
+                )
+
+            return format_account_list_markdown(accounts, mcc_id=mcc_id)
 
         except Exception as e:
             error_msg = ErrorHandler.handle_error(e, context="list_accounts")
             return f"❌ Error listing accounts: {error_msg}"
 
 
-def format_account_list_markdown(accounts: List[Dict]) -> str:
+def format_account_list_markdown(
+    accounts: List[Dict[str, Any]],
+    mcc_id: Optional[str] = None,
+) -> str:
     """Format account list as markdown."""
     if not accounts:
         return "No accounts found."
 
+    manager_count = sum(1 for a in accounts if a.get('is_manager'))
+    client_count = len(accounts) - manager_count
+
     output = "# Google Ads Accounts\n\n"
+    if mcc_id:
+        output += f"**MCC**: {mcc_id}\n\n"
+
     for account in accounts:
-        output += f"## {account['name']}\n"
+        kind = "Manager" if account.get('is_manager') else "Client"
+        output += f"## {account.get('descriptive_name', 'Unnamed Account')}\n"
         output += f"- **Customer ID**: {account['id']}\n"
-        output += f"- **Currency**: {account['currency_code']}\n"
-        output += f"- **Timezone**: {account['time_zone']}\n"
-        output += f"- **Status**: {account['status']}\n"
-        if account.get('manager'):
-            output += f"- **Manager Account**: Yes\n"
+        output += f"- **Type**: {kind}\n"
+        output += f"- **Currency**: {account.get('currency_code') or 'N/A'}\n"
+        output += f"- **Timezone**: {account.get('time_zone') or 'N/A'}\n"
+        output += f"- **Status**: {account.get('status', 'UNKNOWN')}\n"
+        if 'level' in account:
+            output += f"- **Level**: {account['level']}\n"
+        if account.get('test_account'):
+            output += f"- **Test Account**: Yes\n"
         output += "\n"
 
-    output += f"**Total Accounts**: {len(accounts)}\n"
+    output += (
+        f"**Total Accounts**: {len(accounts)} "
+        f"(Managers: {manager_count}, Clients: {client_count})\n"
+    )
 
     return output
 
