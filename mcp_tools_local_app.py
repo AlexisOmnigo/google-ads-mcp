@@ -194,7 +194,9 @@ def register_local_app_tools(mcp: "Server") -> None:
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Optional campaign ID to filter (returns all if not specified)
-            date_range: Date range - LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, etc.
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Dictionary with local campaign performance data including:
@@ -316,7 +318,9 @@ No local campaigns found for customer ID `{customer_id}` in the {date_range} per
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Optional campaign ID to filter (returns all if not specified)
-            date_range: Date range - LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, etc.
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Dictionary with store visit data including:
@@ -621,7 +625,9 @@ for your app promotion goals.
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Optional campaign ID to filter (returns all if not specified)
-            date_range: Date range - LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, etc.
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Dictionary with app campaign performance data including:
@@ -748,7 +754,9 @@ No app campaigns found for customer ID `{customer_id}` in the {date_range} perio
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Optional campaign ID to filter (returns all if not specified)
-            date_range: Date range - LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, etc.
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Dictionary with app conversion data including:

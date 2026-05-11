@@ -29,6 +29,11 @@ from error_handler import ErrorHandler
 from logger import performance_logger, audit_logger
 import json
 from datetime import datetime, timedelta
+from date_range_utils import (
+    resolve_date_range,
+    previous_period,
+    InvalidDateRangeError,
+)
 
 
 def register_reporting_tools(mcp):
@@ -51,15 +56,24 @@ def register_reporting_tools(mcp):
 
         Args:
             customer_id: Customer ID (without hyphens)
-            date_range: Date range (TODAY, YESTERDAY, LAST_7_DAYS, LAST_30_DAYS, etc.)
+            date_range: Either a Google Ads enum (TODAY, YESTERDAY, LAST_7_DAYS,
+                LAST_14_DAYS, LAST_30_DAYS, LAST_90_DAYS, THIS_MONTH, LAST_MONTH,
+                THIS_YEAR, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31").
+                Other accepted separators: "..", ":", "|", " to ".
 
         Returns:
             Account performance metrics
 
-        Example:
+        Examples:
             google_ads_account_performance(
                 customer_id="1234567890",
                 date_range="LAST_30_DAYS"
+            )
+
+            google_ads_account_performance(
+                customer_id="1234567890",
+                date_range="2025-01-01,2025-01-31"
             )
         """
         with performance_logger.track_operation('account_performance', customer_id=customer_id):
@@ -133,7 +147,9 @@ def register_reporting_tools(mcp):
         Args:
             customer_id: Customer ID (without hyphens)
             campaign_id: Optional campaign ID filter
-            date_range: Date range
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Performance breakdown by location
@@ -202,7 +218,9 @@ def register_reporting_tools(mcp):
         Args:
             customer_id: Customer ID (without hyphens)
             campaign_id: Optional campaign ID filter
-            date_range: Date range
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Performance breakdown by device
@@ -272,7 +290,9 @@ def register_reporting_tools(mcp):
         Args:
             customer_id: Customer ID (without hyphens)
             campaign_id: Optional campaign ID filter
-            date_range: Date range
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Performance breakdown by time
@@ -340,25 +360,60 @@ def register_reporting_tools(mcp):
     @mcp.tool()
     def google_ads_compare_periods(
         customer_id: str,
-        current_start: str,
-        current_end: str,
-        previous_start: str,
-        previous_end: str
+        current_start: Optional[str] = None,
+        current_end: Optional[str] = None,
+        previous_start: Optional[str] = None,
+        previous_end: Optional[str] = None,
+        date_range: Optional[str] = None,
+        comparison_mode: str = "preceding"
     ) -> str:
         """
         Compare performance between two time periods.
 
+        You can specify the current period in two ways:
+
+        1. Explicit dates: pass `current_start` and `current_end` (YYYY-MM-DD).
+        2. Convenience: pass `date_range` as a Google Ads enum
+           (e.g. "LAST_30_DAYS", "THIS_MONTH", "LAST_MONTH") OR as a
+           custom range "YYYY-MM-DD,YYYY-MM-DD".
+
+        The previous period is OPTIONAL. If `previous_start`/`previous_end`
+        are not provided, it is auto-computed from the current period based
+        on `comparison_mode`:
+          - "preceding" (default): the immediately preceding window of the
+            same length (e.g. for Dec 1-15 -> Nov 16-30).
+          - "year_over_year": same window shifted back one year.
+
         Args:
             customer_id: Customer ID (without hyphens)
-            current_start: Current period start (YYYY-MM-DD)
-            current_end: Current period end (YYYY-MM-DD)
-            previous_start: Previous period start (YYYY-MM-DD)
-            previous_end: Previous period end (YYYY-MM-DD)
+            current_start: Current period start (YYYY-MM-DD). Optional if
+                `date_range` is provided.
+            current_end: Current period end (YYYY-MM-DD). Optional if
+                `date_range` is provided.
+            previous_start: Previous period start (YYYY-MM-DD). Auto-computed
+                if omitted.
+            previous_end: Previous period end (YYYY-MM-DD). Auto-computed if
+                omitted.
+            date_range: Optional shortcut to set the current period from an
+                enum or custom range. Ignored if `current_start`/`current_end`
+                are provided.
+            comparison_mode: "preceding" (default) or "year_over_year".
 
         Returns:
-            Period-over-period comparison with changes
+            Period-over-period comparison with changes.
 
-        Example:
+        Examples:
+            google_ads_compare_periods(
+                customer_id="1234567890",
+                date_range="LAST_30_DAYS"
+            )
+
+            google_ads_compare_periods(
+                customer_id="1234567890",
+                date_range="2025-12-01,2025-12-15",
+                comparison_mode="year_over_year"
+            )
+
             google_ads_compare_periods(
                 customer_id="1234567890",
                 current_start="2025-12-01",
@@ -369,6 +424,25 @@ def register_reporting_tools(mcp):
         """
         with performance_logger.track_operation('compare_periods', customer_id=customer_id):
             try:
+                if not current_start or not current_end:
+                    if not date_range:
+                        return (
+                            "❌ Provide either (current_start AND current_end) "
+                            "or `date_range` to specify the current period."
+                        )
+                    try:
+                        current_start, current_end = resolve_date_range(date_range)
+                    except InvalidDateRangeError as e:
+                        return f"❌ Invalid date_range: {e}"
+
+                if not previous_start or not previous_end:
+                    try:
+                        previous_start, previous_end = previous_period(
+                            current_start, current_end, mode=comparison_mode
+                        )
+                    except InvalidDateRangeError as e:
+                        return f"❌ Could not compute previous period: {e}"
+
                 client = get_auth_manager().get_client()
                 reporting_manager = ReportingManager(client)
 
@@ -432,7 +506,9 @@ def register_reporting_tools(mcp):
         Args:
             customer_id: Customer ID (without hyphens)
             campaign_id: Optional campaign ID filter
-            date_range: Date range
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Impression share data
@@ -507,7 +583,9 @@ def register_reporting_tools(mcp):
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_ids: Comma-separated campaign IDs (e.g., "123,456,789")
-            date_range: Date range - LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, etc.
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31") - LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, etc.
             response_format: Output format (markdown or json)
 
         Returns:

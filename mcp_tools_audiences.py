@@ -600,7 +600,9 @@ def register_audience_tools(mcp):
         Args:
             customer_id: Customer ID (without hyphens)
             campaign_id: Optional campaign ID to filter
-            date_range: Date range (TODAY, LAST_7_DAYS, LAST_30_DAYS, etc.)
+            date_range: Google Ads enum (TODAY, YESTERDAY, LAST_7_DAYS, LAST_30_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Performance breakdown by audience

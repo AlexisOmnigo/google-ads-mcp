@@ -13,6 +13,7 @@ Provides complete ad lifecycle management including:
 
 from google.ads.googleads.client import GoogleAdsClient
 from typing import Optional, List, Dict, Any
+from date_range_utils import build_date_filter
 from dataclasses import dataclass
 from enum import Enum
 from logger import get_logger
@@ -298,7 +299,7 @@ class AdManager:
                 metrics.conversions,
                 metrics.conversions_value
             FROM ad_group_ad
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if ad_group_id:

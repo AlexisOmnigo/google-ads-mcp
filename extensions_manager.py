@@ -20,6 +20,7 @@ Performance:
 
 from typing import Dict, Any, List, Optional
 from google.ads.googleads.client import GoogleAdsClient
+from date_range_utils import build_date_filter
 from dataclasses import dataclass
 from enum import Enum
 
@@ -589,7 +590,7 @@ class ExtensionsManager:
                 metrics.ctr,
                 metrics.cost_micros
             FROM campaign_asset
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:

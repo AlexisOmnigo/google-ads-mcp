@@ -22,6 +22,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 from google.ads.googleads.client import GoogleAdsClient
+from date_range_utils import build_date_filter
 import hashlib
 
 
@@ -343,7 +344,7 @@ class ConversionManager:
                 metrics.all_conversions,
                 metrics.all_conversions_value
             FROM conversion_action
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if conversion_action_id:

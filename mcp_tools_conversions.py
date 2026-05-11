@@ -467,7 +467,9 @@ def register_conversion_tools(mcp):
         Args:
             customer_id: Customer ID (without hyphens)
             conversion_action_id: Optional specific conversion
-            date_range: Date range
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Conversion performance data
@@ -657,7 +659,9 @@ def register_conversion_tools(mcp):
 
         Args:
             customer_id: Customer ID (without hyphens)
-            date_range: Date range
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, THIS_MONTH,
+                LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Summary of all conversions

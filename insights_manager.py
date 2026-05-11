@@ -16,6 +16,7 @@ from typing import Dict, Any, List, Optional
 from google.ads.googleads.client import GoogleAdsClient
 from datetime import datetime, timedelta
 import statistics
+from date_range_utils import build_date_filter
 
 
 class InsightsManager:
@@ -73,7 +74,7 @@ class InsightsManager:
                 metrics.search_impression_share,
                 metrics.quality_score
             FROM {entity}
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if entity_id:
@@ -378,7 +379,7 @@ class InsightsManager:
                 metrics.search_budget_lost_impression_share,
                 metrics.conversions_value
             FROM campaign
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
               AND campaign.status = 'ENABLED'
             ORDER BY metrics.cost_micros DESC
         """
@@ -474,7 +475,7 @@ class InsightsManager:
                 metrics.clicks,
                 metrics.conversions
             FROM keyword_view
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
               AND metrics.cost_micros > {int(min_cost * 1_000_000)}
             ORDER BY metrics.cost_micros DESC
             LIMIT 50
@@ -549,7 +550,7 @@ class InsightsManager:
                 metrics.search_exact_match_impression_share
             FROM campaign
             WHERE campaign.id = {campaign_id}
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         response = ga_service.search(customer_id=customer_id, query=query)

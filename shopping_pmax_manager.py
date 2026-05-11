@@ -19,6 +19,7 @@ Performance Max Campaigns:
 
 from typing import Dict, Any, List, Optional
 from google.ads.googleads.client import GoogleAdsClient
+from date_range_utils import build_date_filter
 from dataclasses import dataclass
 from enum import Enum
 
@@ -281,7 +282,7 @@ class ShoppingPMaxManager:
                 metrics.cost_per_conversion,
                 shopping_performance_view.click_type
             FROM shopping_performance_view
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -610,7 +611,7 @@ class ShoppingPMaxManager:
                 metrics.all_conversions_value
             FROM campaign
             WHERE campaign.id = {campaign_id}
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         campaign_response = ga_service.search(customer_id=customer_id, query=campaign_query)
@@ -632,7 +633,7 @@ class ShoppingPMaxManager:
                 metrics.conversions
             FROM asset_group
             WHERE campaign.id = {campaign_id}
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         asset_group_response = ga_service.search(customer_id=customer_id, query=asset_group_query)

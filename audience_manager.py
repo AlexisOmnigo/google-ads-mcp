@@ -23,6 +23,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 from google.ads.googleads.client import GoogleAdsClient
+from date_range_utils import build_date_filter
 import hashlib
 
 
@@ -479,7 +480,7 @@ class AudienceManager:
                 metrics.conversions,
                 metrics.conversions_value
             FROM campaign_audience_view
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:

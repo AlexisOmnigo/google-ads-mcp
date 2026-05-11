@@ -290,7 +290,9 @@ def register_shopping_pmax_tools(mcp):
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Optional specific shopping campaign ID
-            date_range: Date range (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS)
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Shopping campaign performance metrics
@@ -748,7 +750,9 @@ def register_shopping_pmax_tools(mcp):
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Performance Max campaign ID
-            date_range: Date range (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS)
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Performance Max campaign insights

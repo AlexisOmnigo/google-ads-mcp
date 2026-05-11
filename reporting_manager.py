@@ -16,6 +16,7 @@ Report Types:
 from typing import Dict, Any, List, Optional
 from google.ads.googleads.client import GoogleAdsClient
 from datetime import datetime, timedelta
+from date_range_utils import build_date_filter
 
 
 class ReportingManager:
@@ -62,7 +63,7 @@ class ReportingManager:
                 metrics.search_rank_lost_impression_share,
                 metrics.search_budget_lost_impression_share
             FROM customer
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         response = ga_service.search(customer_id=customer_id, query=query)
@@ -119,7 +120,7 @@ class ReportingManager:
                 metrics.cost_micros,
                 metrics.conversions
             FROM geographic_view
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -172,7 +173,7 @@ class ReportingManager:
                 metrics.cost_micros,
                 metrics.conversions
             FROM age_range_view
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -223,7 +224,7 @@ class ReportingManager:
                 metrics.conversions,
                 metrics.cost_per_conversion
             FROM campaign
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -274,7 +275,7 @@ class ReportingManager:
                 metrics.cost_micros,
                 metrics.conversions
             FROM campaign
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -303,7 +304,7 @@ class ReportingManager:
                 metrics.cost_micros,
                 metrics.conversions
             FROM campaign
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -444,7 +445,7 @@ class ReportingManager:
                 metrics.search_top_impression_share,
                 metrics.search_absolute_top_impression_share
             FROM campaign
-            WHERE segments.date DURING {date_range}
+            WHERE {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -505,7 +506,7 @@ class ReportingManager:
                 metrics.average_cpc
             FROM campaign
             WHERE ({campaign_filter})
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         response = ga_service.search(customer_id=customer_id, query=query)
@@ -656,7 +657,7 @@ class ReportingManager:
             from_resource = resource_mapping.get(resource_type, resource_type)
 
             # Build WHERE clause
-            where_conditions = [f"segments.date DURING {date_range}"]
+            where_conditions = [f"{build_date_filter(date_range)}"]
             if filters:
                 for key, value in filters.items():
                     if isinstance(value, str):
@@ -766,7 +767,7 @@ class ReportingManager:
                 "metrics.impressions, metrics.clicks, metrics.ctr,",
                 "metrics.cost_micros, metrics.conversions, metrics.conversions_value",
                 "FROM ad_group_criterion",
-                f"WHERE segments.date DURING {date_range}",
+                f"WHERE {build_date_filter(date_range)}",
                 f"AND ad_group_criterion.type IN ('AGE_RANGE', 'GENDER', 'PARENTAL_STATUS', 'INCOME_RANGE')"
             ]
 
@@ -885,7 +886,7 @@ class ReportingManager:
                 "metrics.impressions, metrics.clicks, metrics.ctr,",
                 "metrics.cost_micros, metrics.conversions, metrics.conversions_value",
                 "FROM group_placement_view",
-                f"WHERE segments.date DURING {date_range}"
+                f"WHERE {build_date_filter(date_range)}"
             ]
 
             if campaign_id:
@@ -996,7 +997,7 @@ class ReportingManager:
                 "metrics.video_quartile_p25_rate, metrics.video_quartile_p50_rate,",
                 "metrics.video_quartile_p75_rate, metrics.video_quartile_p100_rate",
                 "FROM ad_group_ad",
-                f"WHERE segments.date DURING {date_range}",
+                f"WHERE {build_date_filter(date_range)}",
                 "AND ad_group_ad.ad.type = 'VIDEO_AD'"
             ]
 
@@ -1094,7 +1095,7 @@ class ReportingManager:
                 "metrics.cost_micros, metrics.conversions, metrics.conversions_value,",
                 "metrics.bounce_rate, metrics.average_time_on_site",
                 "FROM landing_page_view",
-                f"WHERE segments.date DURING {date_range}"
+                f"WHERE {build_date_filter(date_range)}"
             ]
 
             if campaign_id:
@@ -1328,7 +1329,7 @@ class ReportingManager:
                 "metrics.impressions, metrics.clicks, metrics.ctr,",
                 "metrics.cost_micros, metrics.conversions, metrics.conversions_value",
                 "FROM campaign",
-                f"WHERE segments.date DURING {date_range}",
+                f"WHERE {build_date_filter(date_range)}",
                 f"AND ({campaign_filter})"
             ]
 
@@ -1472,7 +1473,7 @@ class ReportingManager:
                     metrics.average_cpc,
                     metrics.cost_micros
                 FROM campaign
-                WHERE segments.date DURING {date_range}
+                WHERE {build_date_filter(date_range)}
                 AND campaign.advertising_channel_type = 'SEARCH'
             """
 
@@ -1739,7 +1740,7 @@ class ReportingManager:
                 "metrics.absolute_top_impression_percentage,",
                 "metrics.outranking_share",
                 "FROM auction_insight",
-                f"WHERE segments.date DURING {date_range}"
+                f"WHERE {build_date_filter(date_range)}"
             ]
 
             if campaign_id:

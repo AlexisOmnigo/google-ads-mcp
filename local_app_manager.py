@@ -18,6 +18,7 @@ App Campaigns:
 
 from typing import Dict, Any, List, Optional
 from google.ads.googleads.client import GoogleAdsClient
+from date_range_utils import build_date_filter
 from dataclasses import dataclass
 from enum import Enum
 
@@ -163,7 +164,7 @@ class LocalAppManager:
                 metrics.view_through_conversions
             FROM campaign
             WHERE campaign.advertising_channel_type = 'LOCAL'
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -221,7 +222,7 @@ class LocalAppManager:
                 segments.conversion_action_name
             FROM campaign
             WHERE campaign.advertising_channel_type = 'LOCAL'
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
               AND segments.conversion_action_name LIKE '%store visit%'
         """
 
@@ -374,7 +375,7 @@ class LocalAppManager:
                 metrics.cost_per_conversion
             FROM campaign
             WHERE campaign.advertising_channel_sub_type = 'APP_CAMPAIGN'
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         if campaign_id:
@@ -433,7 +434,7 @@ class LocalAppManager:
                 metrics.conversions_value
             FROM campaign
             WHERE campaign.advertising_channel_sub_type = 'APP_CAMPAIGN'
-              AND segments.date DURING {date_range}
+              AND {build_date_filter(date_range)}
         """
 
         if campaign_id:

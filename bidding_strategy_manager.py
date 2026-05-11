@@ -22,6 +22,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 from google.ads.googleads.client import GoogleAdsClient
+from date_range_utils import build_date_filter
 
 
 class BiddingStrategyType(str, Enum):
@@ -305,7 +306,7 @@ class BiddingStrategyManager:
                 metrics.cost_per_conversion
             FROM bidding_strategy
             WHERE bidding_strategy.id = {bidding_strategy_id}
-            AND segments.date DURING {date_range}
+            AND {build_date_filter(date_range)}
         """
 
         response = ga_service.search(customer_id=customer_id, query=query)

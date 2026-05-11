@@ -327,3 +327,13 @@ def get_logger(name: str) -> logging.Logger:
 main_logger = setup_logger("google_ads_mcp")
 performance_logger = PerformanceLogger(setup_logger("google_ads_mcp.performance"))
 audit_logger = AuditLogger()
+
+
+def get_performance_logger() -> PerformanceLogger:
+    """Return the shared PerformanceLogger instance."""
+    return performance_logger
+
+
+def get_audit_logger() -> AuditLogger:
+    """Return the shared AuditLogger instance."""
+    return audit_logger

@@ -10,6 +10,7 @@ Provides complete ad group lifecycle management including:
 
 from google.ads.googleads.client import GoogleAdsClient
 from typing import Optional, List, Dict, Any
+from date_range_utils import build_date_filter
 from dataclasses import dataclass
 from enum import Enum
 from logger import get_logger
@@ -441,7 +442,7 @@ class AdGroupManager:
                 metrics.view_through_conversions
             FROM ad_group
             WHERE ad_group.id = {ad_group_id}
-            AND segments.date DURING {date_range}
+            AND {build_date_filter(date_range)}
         """
 
         ga_service = self.client.get_service("GoogleAdsService")

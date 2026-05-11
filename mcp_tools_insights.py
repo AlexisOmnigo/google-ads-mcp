@@ -48,7 +48,9 @@ def register_insights_tools(mcp):
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             entity_type: Entity to analyze - CAMPAIGN, AD_GROUP, KEYWORD, or AD
             entity_id: Optional specific entity ID (if not provided, analyzes all)
-            date_range: Date range (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS, THIS_MONTH, LAST_MONTH)
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Performance insights with AI-generated recommendations
@@ -371,7 +373,9 @@ def register_insights_tools(mcp):
 
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
-            date_range: Date range for analysis (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS)
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Budget reallocation recommendations prioritized by impact
@@ -466,7 +470,9 @@ def register_insights_tools(mcp):
 
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
-            date_range: Date range for analysis (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS)
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
             min_cost: Minimum cost threshold for analysis (default: $10)
 
         Returns:
@@ -562,7 +568,9 @@ def register_insights_tools(mcp):
         Args:
             customer_id: Google Ads customer ID (10 digits, no hyphens)
             campaign_id: Campaign ID to analyze
-            date_range: Date range (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS)
+            date_range: Google Ads enum (LAST_7_DAYS, LAST_30_DAYS, LAST_90_DAYS,
+                THIS_MONTH, LAST_MONTH, LAST_YEAR, etc.) OR a custom range
+                "YYYY-MM-DD,YYYY-MM-DD" (e.g. "2025-01-01,2025-01-31")
 
         Returns:
             Auction insights with competitive analysis
