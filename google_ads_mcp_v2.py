@@ -70,6 +70,55 @@ class MCPBearerAuthMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
+
+class MCPPathNormalizationMiddleware(BaseHTTPMiddleware):
+    """Make /mcp and /mcp/ both reach the streamable HTTP endpoint.
+
+    Older mcp (<1.15) mounts the transport as Mount("/mcp", ...) which only
+    matches paths under "/mcp/", so a request to "/mcp" returns 404. Newer
+    mcp (>=1.15) uses Route("/mcp", ...) which matches "/mcp" exactly and
+    returns a 307 redirect for "/mcp/" (which not every MCP client follows
+    on POST). This middleware rewrites the request path in-place so both
+    URL variants resolve to whichever the inner app expects.
+    """
+
+    def __init__(self, app, target_path: str, alt_path: str):
+        super().__init__(app)
+        self.target_path = target_path
+        self.alt_path = alt_path
+
+    async def dispatch(self, request: Request, call_next):
+        if (
+            request.scope.get("type") == "http"
+            and request.url.path == self.alt_path
+        ):
+            request.scope["path"] = self.target_path
+            request.scope["raw_path"] = self.target_path.encode("ascii")
+        return await call_next(request)
+
+
+def _detect_streamable_path(app) -> tuple[str, str]:
+    """Detect which "/mcp" variant the streamable HTTP app actually serves.
+
+    Returns (target_path, alt_path) where alt_path should be rewritten to
+    target_path by MCPPathNormalizationMiddleware.
+    """
+    from starlette.routing import Mount
+
+    for route in getattr(app, "routes", []):
+        path = getattr(route, "path", None)
+        if not path or "/mcp" not in path:
+            continue
+        # Mount("/mcp", ...) only matches "/mcp/<rest>", so requests to
+        # "/mcp" alone 404. Inner app sees the path stripped of the prefix,
+        # so we target "/mcp/" (which Mount turns into "" inside).
+        if isinstance(route, Mount):
+            return "/mcp/", "/mcp"
+        # Route("/mcp", ...) matches "/mcp" exactly; redirect "/mcp/" to it.
+        return "/mcp", "/mcp/"
+    # Fallback to the modern default.
+    return "/mcp", "/mcp/"
+
 # Configure transport security for local development and Railway.
 public_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "google-ads-mcp-production-6e95.up.railway.app")
 public_origins = [f"https://{public_domain}"] if public_domain else []
@@ -728,5 +777,18 @@ if __name__ == "__main__":
 
     # Prefer streamable HTTP for hosted MCP deployments such as Railway.
     app = mcp.streamable_http_app()
+    target_path, alt_path = _detect_streamable_path(app)
+    logger.info(
+        f"MCP streamable transport serving '{target_path}' "
+        f"(also accepting '{alt_path}')"
+    )
+    # Path normalization MUST run before auth so the rewritten path matches
+    # the bearer-protected prefix consistently. Middleware added later runs
+    # earlier in the request chain in Starlette, so this is added last.
     app.add_middleware(MCPBearerAuthMiddleware, token=auth_token)
+    app.add_middleware(
+        MCPPathNormalizationMiddleware,
+        target_path=target_path,
+        alt_path=alt_path,
+    )
     uvicorn.run(app, host="0.0.0.0", port=port)
