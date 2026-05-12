@@ -60,19 +60,33 @@ class InsightsManager:
 
         entity = entity_map.get(entity_type.upper(), "campaign")
 
+        # Build SELECT columns. As of Google Ads API v24:
+        #   - metrics.quality_score no longer exists (it was a keyword-only
+        #     metric). Quality Score is now exposed on the criterion itself
+        #     via ad_group_criterion.quality_info.quality_score.
+        #   - metrics.search_impression_share is only available on campaign
+        #     and ad_group resources, not on ad_group_criterion or
+        #     ad_group_ad.
+        select_columns = [
+            f"{entity}.id",
+            f"{entity}.name" if entity != "ad_group_criterion" else "ad_group_criterion.keyword.text",
+            "metrics.impressions",
+            "metrics.clicks",
+            "metrics.ctr",
+            "metrics.cost_micros",
+            "metrics.conversions",
+            "metrics.conversions_value",
+            "metrics.cost_per_conversion",
+        ]
+
+        if entity in ("campaign", "ad_group"):
+            select_columns.append("metrics.search_impression_share")
+
+        if entity == "ad_group_criterion":
+            select_columns.append("ad_group_criterion.quality_info.quality_score")
+
         query = f"""
-            SELECT
-                {entity}.id,
-                {entity}.name,
-                metrics.impressions,
-                metrics.clicks,
-                metrics.ctr,
-                metrics.cost_micros,
-                metrics.conversions,
-                metrics.conversions_value,
-                metrics.cost_per_conversion,
-                metrics.search_impression_share,
-                metrics.quality_score
+            SELECT {', '.join(select_columns)}
             FROM {entity}
             WHERE {build_date_filter(date_range)}
         """
@@ -96,10 +110,15 @@ class InsightsManager:
             ctr = metrics.ctr
             cvr = metrics.conversions / metrics.clicks if metrics.clicks > 0 else 0
 
-            # Generate insights
+            # ad_group_criterion has no `.name`; use the keyword text instead.
+            if entity == "ad_group_criterion":
+                entity_name = getattr(entity_obj.keyword, "text", "N/A")
+            else:
+                entity_name = entity_obj.name if hasattr(entity_obj, "name") else "N/A"
+
             entity_insights = {
                 'entity_id': str(entity_obj.id),
-                'entity_name': entity_obj.name if hasattr(entity_obj, 'name') else 'N/A',
+                'entity_name': entity_name,
                 'metrics': {
                     'impressions': metrics.impressions,
                     'clicks': metrics.clicks,
@@ -136,10 +155,10 @@ class InsightsManager:
                     'recommendation': 'Review landing page experience and conversion funnel.'
                 })
 
-            # Impression share insights
-            if hasattr(metrics, 'search_impression_share'):
+            # Impression share insights (only requested for campaign / ad_group)
+            if entity in ("campaign", "ad_group") and hasattr(metrics, 'search_impression_share'):
                 is_value = metrics.search_impression_share
-                if is_value < 0.5:
+                if is_value and is_value < 0.5:
                     entity_insights['insights'].append({
                         'type': 'LOW_IMPRESSION_SHARE',
                         'severity': 'MEDIUM',
@@ -147,14 +166,17 @@ class InsightsManager:
                         'recommendation': 'Increase budget or improve ad rank to capture more impressions.'
                     })
 
-            # Quality score insights
-            if hasattr(metrics, 'quality_score') and metrics.quality_score < 5:
-                entity_insights['insights'].append({
-                    'type': 'LOW_QUALITY_SCORE',
-                    'severity': 'HIGH',
-                    'message': f'Quality Score ({metrics.quality_score}/10) needs improvement',
-                    'recommendation': 'Improve ad relevance, expected CTR, and landing page experience.'
-                })
+            # Quality score insights (keyword-level only in Google Ads API v24+)
+            if entity == "ad_group_criterion":
+                quality_info = getattr(entity_obj, "quality_info", None)
+                qs = getattr(quality_info, "quality_score", None) if quality_info else None
+                if qs and qs < 5:
+                    entity_insights['insights'].append({
+                        'type': 'LOW_QUALITY_SCORE',
+                        'severity': 'HIGH',
+                        'message': f'Quality Score ({qs}/10) needs improvement',
+                        'recommendation': 'Improve ad relevance, expected CTR, and landing page experience.'
+                    })
 
             if entity_insights['insights']:
                 insights.append(entity_insights)
