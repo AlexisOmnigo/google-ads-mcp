@@ -12,6 +12,7 @@ Provides complete ad lifecycle management including:
 """
 
 from google.ads.googleads.client import GoogleAdsClient
+from google.protobuf import field_mask_pb2
 from typing import Optional, List, Dict, Any
 from date_range_utils import build_date_filter
 from dataclasses import dataclass
@@ -187,7 +188,7 @@ class AdManager:
         # Set field mask
         self.client.copy_from(
             ad_group_ad_operation.update_mask,
-            self.client.get_type("FieldMask")(paths=["status"])
+            field_mask_pb2.FieldMask(paths=["status"])
         )
 
         # Update ad
@@ -503,7 +504,7 @@ class AdManager:
 
             self.client.copy_from(
                 ad_group_ad_operation.update_mask,
-                self.client.get_type("FieldMask")(paths=["status"])
+                field_mask_pb2.FieldMask(paths=["status"])
             )
 
             operations.append(ad_group_ad_operation)

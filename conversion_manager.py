@@ -22,6 +22,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 from google.ads.googleads.client import GoogleAdsClient
+from google.protobuf import field_mask_pb2
 from date_range_utils import build_date_filter
 import hashlib
 
@@ -399,7 +400,7 @@ class ConversionManager:
 
         self.client.copy_from(
             conversion_action_operation.update_mask,
-            self.client.get_type("FieldMask")(
+            field_mask_pb2.FieldMask(
                 paths=["attribution_model_settings.attribution_model"]
             )
         )

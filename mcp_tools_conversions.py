@@ -21,6 +21,7 @@ Performance & Reporting (3 tools):
 """
 
 from typing import Optional, List, Dict, Any
+from google.protobuf import field_mask_pb2
 from conversion_manager import (
     ConversionManager,
     ConversionActionConfig,
@@ -732,7 +733,7 @@ def register_conversion_tools(mcp):
 
                 client.copy_from(
                     conversion_action_operation.update_mask,
-                    client.get_type("FieldMask")(paths=field_paths)
+                    field_mask_pb2.FieldMask(paths=field_paths)
                 )
 
                 conversion_action_service.mutate_conversion_actions(

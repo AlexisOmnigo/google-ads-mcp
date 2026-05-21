@@ -22,6 +22,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 from google.ads.googleads.client import GoogleAdsClient
+from google.protobuf import field_mask_pb2
 from date_range_utils import build_date_filter
 
 
@@ -216,7 +217,7 @@ class BiddingStrategyManager:
         # Set field mask
         self.client.copy_from(
             bidding_strategy_operation.update_mask,
-            self.client.get_type("FieldMask")(paths=field_mask_paths)
+            field_mask_pb2.FieldMask(paths=field_mask_paths)
         )
 
         response = bidding_strategy_service.mutate_bidding_strategies(
@@ -258,7 +259,7 @@ class BiddingStrategyManager:
 
         self.client.copy_from(
             campaign_operation.update_mask,
-            self.client.get_type("FieldMask")(paths=["bidding_strategy"])
+            field_mask_pb2.FieldMask(paths=["bidding_strategy"])
         )
 
         response = campaign_service.mutate_campaigns(
@@ -368,7 +369,7 @@ class BiddingStrategyManager:
 
             self.client.copy_from(
                 operation.update_mask,
-                self.client.get_type("FieldMask")(paths=["bid_modifier"])
+                field_mask_pb2.FieldMask(paths=["bid_modifier"])
             )
 
             operations.append(operation)
@@ -415,7 +416,7 @@ class BiddingStrategyManager:
 
             self.client.copy_from(
                 operation.update_mask,
-                self.client.get_type("FieldMask")(paths=["bid_modifier"])
+                field_mask_pb2.FieldMask(paths=["bid_modifier"])
             )
 
             operations.append(operation)
