@@ -16,6 +16,7 @@ from typing import Optional, List, Dict, Any, Literal
 from enum import Enum
 from dataclasses import dataclass
 from google.ads.googleads.client import GoogleAdsClient
+from google.protobuf import field_mask_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -305,7 +306,7 @@ class CampaignManager:
         # Set field mask
         self.client.copy_from(
             campaign_operation.update_mask,
-            self.client.get_type("FieldMask")(paths=field_mask)
+            field_mask_pb2.FieldMask(paths=field_mask)
         )
 
         # Update campaign
@@ -392,7 +393,7 @@ class CampaignManager:
         # Set field mask
         self.client.copy_from(
             budget_operation.update_mask,
-            self.client.get_type("FieldMask")(paths=["amount_micros"])
+            field_mask_pb2.FieldMask(paths=["amount_micros"])
         )
 
         # Update budget
@@ -907,7 +908,7 @@ class CampaignManager:
         # Set field mask
         self.client.copy_from(
             campaign_operation.update_mask,
-            self.client.get_type("FieldMask")(paths=["campaign_budget"])
+            field_mask_pb2.FieldMask(paths=["campaign_budget"])
         )
 
         # Update campaign

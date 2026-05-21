@@ -17,6 +17,7 @@ from typing import Optional, List, Dict, Any, Literal
 from enum import Enum
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.errors import GoogleAdsException
+from google.protobuf import field_mask_pb2
 import json
 import asyncio
 import os
@@ -1018,8 +1019,10 @@ async def google_ads_update_campaign_budget(params: UpdateCampaignBudgetInput) -
         budget.resource_name = budget_resource
         budget.amount_micros = params.budget_amount_micros
         
-        budget_operation.update_mask = client.get_type("FieldMask")
-        budget_operation.update_mask.paths.append("amount_micros")
+        client.copy_from(
+            budget_operation.update_mask,
+            field_mask_pb2.FieldMask(paths=["amount_micros"])
+        )
         
         response = campaign_budget_service.mutate_campaign_budgets(
             customer_id=params.customer_id,
@@ -1069,8 +1072,10 @@ async def google_ads_update_campaign_status(params: UpdateCampaignStatusInput) -
         else:
             campaign.status = client.enums.CampaignStatusEnum.PAUSED
         
-        campaign_operation.update_mask = client.get_type("FieldMask")
-        campaign_operation.update_mask.paths.append("status")
+        client.copy_from(
+            campaign_operation.update_mask,
+            field_mask_pb2.FieldMask(paths=["status"])
+        )
         
         response = campaign_service.mutate_campaigns(
             customer_id=params.customer_id,

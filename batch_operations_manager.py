@@ -15,6 +15,7 @@ Capabilities:
 
 from typing import Dict, Any, List, Optional, Union
 from google.ads.googleads.client import GoogleAdsClient
+from google.protobuf import field_mask_pb2
 from dataclasses import dataclass
 import csv
 import io
@@ -510,7 +511,7 @@ class BatchOperationsManager:
             # Update field mask
             self.client.copy_from(
                 campaign_operation.update_mask,
-                self.client.get_type("FieldMask", paths=["amount_micros"])
+                field_mask_pb2.FieldMask(paths=["amount_micros"])
             )
 
             # Execute budget update
@@ -568,7 +569,7 @@ class BatchOperationsManager:
 
                 self.client.copy_from(
                     criterion_operation.update_mask,
-                    self.client.get_type("FieldMask", paths=["cpc_bid_micros"])
+                    field_mask_pb2.FieldMask(paths=["cpc_bid_micros"])
                 )
 
                 operations.append(criterion_operation)
@@ -620,7 +621,7 @@ class BatchOperationsManager:
 
                 self.client.copy_from(
                     ad_group_operation.update_mask,
-                    self.client.get_type("FieldMask", paths=["cpc_bid_micros"])
+                    field_mask_pb2.FieldMask(paths=["cpc_bid_micros"])
                 )
 
                 operations.append(ad_group_operation)
@@ -685,7 +686,7 @@ class BatchOperationsManager:
                 entity.status = self.client.enums.CampaignStatusEnum[update['status']]
                 self.client.copy_from(
                     operation.update_mask,
-                    self.client.get_type("FieldMask", paths=["status"])
+                    field_mask_pb2.FieldMask(paths=["status"])
                 )
                 operations.append(operation)
 
@@ -704,7 +705,7 @@ class BatchOperationsManager:
                 entity.status = self.client.enums.AdGroupStatusEnum[update['status']]
                 self.client.copy_from(
                     operation.update_mask,
-                    self.client.get_type("FieldMask", paths=["status"])
+                    field_mask_pb2.FieldMask(paths=["status"])
                 )
                 operations.append(operation)
 
@@ -727,7 +728,7 @@ class BatchOperationsManager:
                 entity.status = self.client.enums.AdGroupCriterionStatusEnum[update['status']]
                 self.client.copy_from(
                     operation.update_mask,
-                    self.client.get_type("FieldMask", paths=["status"])
+                    field_mask_pb2.FieldMask(paths=["status"])
                 )
                 operations.append(operation)
 
@@ -750,7 +751,7 @@ class BatchOperationsManager:
                 entity.status = self.client.enums.AdGroupAdStatusEnum[update['status']]
                 self.client.copy_from(
                     operation.update_mask,
-                    self.client.get_type("FieldMask", paths=["status"])
+                    field_mask_pb2.FieldMask(paths=["status"])
                 )
                 operations.append(operation)
 

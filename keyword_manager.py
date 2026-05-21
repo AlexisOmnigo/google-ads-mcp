@@ -13,6 +13,7 @@ Provides complete keyword lifecycle management including:
 """
 
 from google.ads.googleads.client import GoogleAdsClient
+from google.protobuf import field_mask_pb2
 from typing import Optional, List, Dict, Any
 from date_range_utils import build_date_filter
 from dataclasses import dataclass
@@ -231,7 +232,7 @@ class KeywordManager:
         # Set field mask
         self.client.copy_from(
             operation.update_mask,
-            self.client.get_type("FieldMask")(paths=["cpc_bid_micros"])
+            field_mask_pb2.FieldMask(paths=["cpc_bid_micros"])
         )
 
         # Update keyword
@@ -280,7 +281,7 @@ class KeywordManager:
         # Set field mask
         self.client.copy_from(
             operation.update_mask,
-            self.client.get_type("FieldMask")(paths=["status"])
+            field_mask_pb2.FieldMask(paths=["status"])
         )
 
         # Update keyword
@@ -577,7 +578,7 @@ class KeywordManager:
 
             self.client.copy_from(
                 operation.update_mask,
-                self.client.get_type("FieldMask")(paths=["cpc_bid_micros"])
+                field_mask_pb2.FieldMask(paths=["cpc_bid_micros"])
             )
 
             operations.append(operation)
